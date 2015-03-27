@@ -3,7 +3,6 @@ MAINTAINER harlo <harlo.holmes@gmail.com>
 
 ADD src/install.sh /home/${USER}/install.sh
 ADD src/run.sh /home/${USER}/run.sh
-ADD src/startup.sh /home/${USER}/startup.sh
 ADD src/update.sh /home/${USER}/update.sh
 
 RUN sudo chown -R ${USER}:${USER} /home/${USER}

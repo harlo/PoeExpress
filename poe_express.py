@@ -105,7 +105,9 @@ def commit_d(with_config):
 	print config
 
 	from dutils.dutils import generate_run_routine, generate_shutdown_routine, finalize_assets
-	return (generate_run_routine(config, src_dirs=["proofofexistence"], with_config=with_config) and generate_shutdown_routine(config, with_config=with_config) and finalize_assets(with_config=with_config))
+	return generate_run_routine(config, src_dirs=["proofofexistence"], with_config=with_config) and \
+		generate_shutdown_routine(config, with_config=with_config) and \
+		finalize_assets(with_config=with_config)
 
 def update_d(with_config):
 	return build_dockerfile("Dockerfile.update", __load_config(with_config=with_config))

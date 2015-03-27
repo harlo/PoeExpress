@@ -3,7 +3,9 @@
 source ~/.bash_profile
 
 sudo service ssh start
-python proofofexistence/app.py start --config=~/config/poe.config.json
+sudo cron -f &
+
+python proofofexistence/app.py start --base-dir=~/config
 if ([ $? -eq 0 ]); then
 	echo "proofofexistence is up and running!"
 	tail -f /dev/null

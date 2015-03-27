@@ -8,5 +8,6 @@ src/.bash_profile
 
 venv/
 src/.ssh
+src/config
 
 !src/*.sh
