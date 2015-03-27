@@ -2,7 +2,7 @@ import os, json, yaml
 from sys import argv, exit
 
 from dutils.conf import DUtilsKey, DUtilsKeyDefaults, build_config, BASE_DIR, append_to_config, save_config, __load_config
-from dutils.conf impirt DUtilsTransforms as transforms
+from dutils.conf import DUtilsTransforms as transforms
 from dutils.dutils import build_routine, build_dockerfile
 
 API_PORT = 8080
@@ -11,9 +11,9 @@ DEFAULT_PORTS = [22]
 
 def init_d(with_config):
 	conf_keys = [
-		DUtilsKey['USER'],
-		DUtilsKey['USER_PWD'],
-		DUtilsKey['IMAGE_NAME']
+		DUtilsKeyDefaults['USER'],
+		DUtilsKeyDefaults['USER_PWD'],
+		DUtilsKeyDefaults['IMAGE_NAME'],
 		DUtilsKey("API_PORT", "POE api port", API_PORT, str(API_PORT), transforms['PORT_TO_INT']),
 	]
 
@@ -21,7 +21,7 @@ def init_d(with_config):
 
 	from dutils.dutils import get_docker_exe, get_docker_ip, validate_private_key
 
-	docker_exe = get_docker_ext()
+	docker_exe = get_docker_exe()
 	if docker_exe is None:
 		return False
 
@@ -50,7 +50,6 @@ def init_d(with_config):
 			local("mkdir %s" % os.path.join(BASE_DIR, "src", "config"))
 	
 		local("cp %s %s" % (config['SSH_PUB_KEY'], os.path.join(BASE_DIR, "src", ".ssh", "authorized_keys")))
-		local("cp %s %s", % (os.path.join(BASE_DIR, "dutils", "conf.py"), os.path.join(BASE_DIR, "src", "Coven", "utils")))
 
 	directives = ["export %s=%d" % (d, int(config[d])) for d in ['API_PORT']]
 	
@@ -68,14 +67,12 @@ def init_d(with_config):
 		EC.write(json.dumps(export_config))
 
 	import re
-	from dutils.dutils import cron_units
-
 	with open(os.path.join(BASE_DIR, "src", "proofofexistence", "cron.yaml"), 'rb') as CRON:
 		try:
 			jobs = [{'command' : "curl -X GET http://localhost:%d%s" % (config['API_PORT'], job['url']), \
 				'comment' : job['description'], \
-				'unit' : re.findall(re.compile("([%s])" % "|".join(cron_units)), job['schedule'])[0], \
-				'frequency' : int(re.findall(r'every\s(\d+)\s.*', job['schedule'])[0])} for job in yaml.load(CRON.read())['cron']]
+				'unit' : re.findall(r'every\s\d+\s(\w+)', job['schedule'].strip())[0], \
+				'frequency' : int(re.findall(r'every\s(\d+)\s\w+', job['schedule'].strip())[0])} for job in yaml.load(CRON.read())['cron']]
 
 			print jobs
 

@@ -4,7 +4,9 @@
 *.sh
 *.tab
 Dockerfile
+src/.bash_profile
 
 venv/
+src/.ssh
 
 !src/*.sh
