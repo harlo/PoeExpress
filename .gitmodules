@@ -1,0 +1,9 @@
+[submodule "proofofexistence"]
+	path = proofofexistence
+	url = git@github.com:harlo/proofofexistence.git
+[submodule "src/proofofexistence"]
+	path = src/proofofexistence
+	url = git@github.com:harlo/proofofexistence.git
+[submodule "dutils"]
+	path = dutils
+	url = git@github.com:harlo/dutils.git
