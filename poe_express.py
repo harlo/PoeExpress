@@ -8,6 +8,9 @@ from dutils.dutils import build_routine, build_dockerfile
 API_PORT = 8080
 
 DEFAULT_PORTS = [22]
+DEFAULT_ADMIN_PATH = "proofofexistence"
+DEFAULT_ADMIN_EMAIL = "harlo.holmes@gmail.com"
+DEFAULT_SENDER_EMAIL = "hello@camera-v.org"
 
 def init_d(with_config):
 	conf_keys = [
@@ -15,6 +18,13 @@ def init_d(with_config):
 		DUtilsKeyDefaults['USER_PWD'],
 		DUtilsKeyDefaults['IMAGE_NAME'],
 		DUtilsKey("API_PORT", "POE api port", API_PORT, str(API_PORT), transforms['PORT_TO_INT']),
+		DUtilsKey("SECRET_ADMIN_PATH", "POE api's secret admin path", \
+			DEFAULT_ADMIN_PATH, DEFAULT_ADMIN_PATH, None),
+		DUtilsKey("PAYMENT_ADDRESS", "Bitcoin payment address", "None", "None", None),
+		DUtilsKey("ADMIN_EMAIL", "Admin's email address", \
+			DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_EMAIL, None),
+		DUtilsKey("DEFAULT_SENDER_EMAIL", "Default email to send from", \
+			DEFAULT_SENDER_EMAIL, DEFAULT_SENDER_EMAIL, None)
 	]
 
 	config = build_config(conf_keys, with_config)
