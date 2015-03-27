@@ -1,0 +1,5 @@
+FROM ${IMAGE_NAME}:init
+MAINTAINER harlo <harlo.holmes@gmail.com>
+
+CMD ["/bin/bash", "./run.sh"]
+EXPOSE ${DEFAULT_PORTS}
