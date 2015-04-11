@@ -80,8 +80,17 @@ sudo cp utils/redis_init_script /etc/init.d/redis_$REDIS_PORT
 cd ../proofofexistence
 sudo pip install -r requirements.txt
 
-# resove git stuff for future updating
+
 cd $THIS_DIR
+
+# FINISH REDIS SETUP
+python install.py
+if ([ $? -eq 0 ]); then
+	sudo mv config/$REDIS_PORT.conf /etc/redis
+	sudo update-rc.d redis_$REDIS_PORT defaults
+fi
+
+# resove git stuff for future updating
 git config --global user.name $(whoami)
 git config --global user.email "$(whoami)@camera-v.org"
 resolve_git ~/proofofexistence "git@github.com:harlo/proofofexistence.git"
