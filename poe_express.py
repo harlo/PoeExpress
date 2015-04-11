@@ -6,18 +6,22 @@ from dutils.conf import DUtilsTransforms as transforms
 from dutils.dutils import build_routine, build_dockerfile
 
 API_PORT = 8080
+REDIS_PORT = 6379
 
 DEFAULT_PORTS = [22]
-DEFAULT_ADMIN_PATH = "proofofexistence"
+DEFAULT_ADMIN_PATH = "admin"
 DEFAULT_ADMIN_EMAIL = "harlo.holmes@gmail.com"
 DEFAULT_SENDER_EMAIL = "hello@camera-v.org"
 
 def init_d(with_config):
+	global API_PORT, REDIS_PORT, DEFAULT_SENDER_EMAIL, DEFAULT_ADMIN_PATH, DEFAULT_ADMIN_EMAIL
+
 	conf_keys = [
 		DUtilsKeyDefaults['USER'],
 		DUtilsKeyDefaults['USER_PWD'],
 		DUtilsKeyDefaults['IMAGE_NAME'],
 		DUtilsKey("API_PORT", "POE api port", API_PORT, str(API_PORT), transforms['PORT_TO_INT']),
+		DUtilsKey("REDIS_PORT", "POE redis port", REDIS_PORT, str(REDIS_PORT), transforms['PORT_TO_INT']),
 		DUtilsKey("SECRET_ADMIN_PATH", "POE api's secret admin path", \
 			DEFAULT_ADMIN_PATH, DEFAULT_ADMIN_PATH, None),
 		DUtilsKey("PAYMENT_ADDRESS", "Bitcoin payment address", "None", "None", None),
@@ -52,16 +56,12 @@ def init_d(with_config):
 		return False
 
 	from fabric.api import settings, local
-	with settings(warn_only=True):
-		if not os.path.exists(os.path.join(BASE_DIR, "src", ".ssh")):
-			local("mkdir %s" % os.path.join(BASE_DIR, "src", ".ssh"))
+	for sf in ["config", config['SECRET_ADMIN_PATH']]:
+		with settings(warn_only=True):
+			if not os.path.exists(os.path.join(BASE_DIR, "src", sf)):
+				local("mkdir %s" % os.path.join(BASE_DIR, "src", sf))
 
-		if not os.path.exists(os.path.join(BASE_DIR, "src", "config")):
-			local("mkdir %s" % os.path.join(BASE_DIR, "src", "config"))
-	
-		local("cp %s %s" % (config['SSH_PUB_KEY'], os.path.join(BASE_DIR, "src", ".ssh", "authorized_keys")))
-
-	directives = ["export %s=%d" % (d, int(config[d])) for d in ['API_PORT']]
+	directives = ["export %s=%d" % (d, int(config[d])) for d in ['API_PORT', 'REDIS_PORT']]
 	
 	export_config = {}
 	
@@ -75,6 +75,16 @@ def init_d(with_config):
 
 	with open(os.path.join(BASE_DIR, "src", "config", "poe.config.json"), 'wb+') as EC:
 		EC.write(json.dumps(export_config))
+
+	from dutils.conf import get_directive
+
+	print argv
+	pgp_key = get_directive(argv, "pgpkey")
+	print "PGP FOUND AT: %s" % pgp_key
+
+	if pgp_key is not None and os.path.exists(pgp_key):
+		with settings(warn_only=True):
+			local("cp %s %s" % (pgp_key, os.path.join(BASE_DIR, "src", config['SECRET_ADMIN_PATH'])))
 
 	import re
 	with open(os.path.join(BASE_DIR, "src", "proofofexistence", "cron.yaml"), 'rb') as CRON:
@@ -102,6 +112,29 @@ def init_d(with_config):
 
 def build_d(with_config):
 	res, config = append_to_config({'COMMIT_TO' : "poe_express"}, return_config=True, with_config=with_config)
+
+	if not res:
+		return False
+
+	global DEFAULT_PORTS
+	import operator
+
+	mapped_ports = [config['API_PORT']]
+	DEFAULT_PORTS = operator.add(DEFAULT_PORTS, mapped_ports)
+	DEFAULT_PORTS = operator.add(DEFAULT_PORTS, [config['REDIS_PORT']])
+
+	res, config = append_to_config({
+		'DEFAULT_PORTS' : " ".join([str(p) for p in DEFAULT_PORTS]),
+		'MAPPED_PORTS' : mapped_ports,
+		'PUBLISH_PORTS' : mapped_ports
+	}, return_config=True, with_config=with_config)
+
+	if not res:
+		return False
+
+	from dutils.dutils import generate_build_routine
+	return build_dockerfile("Dockerfile.build", config) and \
+		generate_build_routine(config, with_config=with_config)
 
 def commit_d(with_config):
 	try:
@@ -132,8 +165,10 @@ if __name__ == "__main__":
 		res = build_d(with_config)
 	elif argv[1] == "commit":
 		res = commit_d(with_config)
+	elif argv[1] == "finish":
+		res = True
 	elif argv[1] == "update":
 		res = update_d(with_config)
 	
-	print "RESULT: ", res 
+	print "RESULT from %s: " % argv[1], res 
 	exit(0 if res else -1)

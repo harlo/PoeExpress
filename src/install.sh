@@ -49,11 +49,7 @@ _EOF
 
 			if [[ -z "$U_PATH" ]] || [[ -z "$S_PATH" ]]; then
 				continue
-			else
-				echo ""
-				echo "HI $U_PATH and $S_PATH"
-				echo ""
-				
+			else				
 				resolve_git $1/$S_PATH $U_PATH
 				U_PATH=""
 				S_PATH=""
@@ -67,8 +63,21 @@ source ~/.bash_profile
 
 mkdir -p $THIS_DIR/config/.monitor
 
+# INSTALL REDIS
+wget http://download.redis.io/redis-stable.tar.gz
+tar -xvzf redis-stable.tar.gz
+rm redis-stable.tar.gz
+
+cd redis-stable
+make
+sudo cp src/redis-server /usr/local/bin
+sudo cp src/redis-cli /usr/local/bin
+sudo mkdir /etc/redis
+sudo mkdir -p /var/redis/$REDIS_PORT
+sudo cp utils/redis_init_script /etc/init.d/redis_$REDIS_PORT
+
 # setup POE
-cd proofofexistence
+cd ../proofofexistence
 sudo pip install -r requirements.txt
 
 # resove git stuff for future updating

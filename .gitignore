@@ -3,6 +3,7 @@
 *.json
 *.sh
 *.tab
+*.asc
 Dockerfile
 src/.bash_profile
 
