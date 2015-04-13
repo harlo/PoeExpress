@@ -7,7 +7,7 @@ sudo service ssh start
 sudo cron -f &
 
 if [ -f $REDIS_PID_FILE ]; then
-	rm $REDIS_PID_FILE
+	sudo rm $REDIS_PID_FILE
 fi
 
 sudo service redis_$REDIS_PORT start
