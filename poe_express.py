@@ -96,6 +96,10 @@ def init_d(with_config):
 
 			print jobs
 
+			from dutils.dutils import build_cron_job
+			if not build_cron_job(jobs, dest_d=os.path.join(BASE_DIR, "src", "config")):
+				return False
+
 		except Exception as e:
 			print e, type(e)
 			print "COULD NOT WRITE CRON!!!\nContinue without the cron file?"
@@ -104,9 +108,8 @@ def init_d(with_config):
 			if prompt("[Y/n] : ") == "n":
 				return False
 
-	from dutils.dutils import generate_init_routine, build_bash_profile, build_cron_job
-	return build_cron_job(jobs, dest_d=os.path.join(BASE_DIR, "src", "config")) and \
-		build_bash_profile(directives, os.path.join(BASE_DIR, "src")) and \
+	from dutils.dutils import generate_init_routine, build_bash_profile
+	return build_bash_profile(directives, os.path.join(BASE_DIR, "src")) and \
 		build_dockerfile("Dockerfile.init", config) and \
 		generate_init_routine(config, with_config=with_config)
 
